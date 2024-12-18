@@ -1,4 +1,4 @@
 package config
 
-const ProjectModeDevelopment = "development"
-const ProjectModeProduction = "production"
+const ValueHolderProjectModeDevelopment = "development"
+const ValueHolderProjectModeProduction = "production"
