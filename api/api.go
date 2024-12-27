@@ -1,11 +1,13 @@
 package api
 
 import (
+	"github.com/404th/value-holder/internal/config"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"go.uber.org/zap"
 )
 
-func RegisterRouter() *echo.Echo {
+func Run(cfg *config.Config, sugar *zap.SugaredLogger) *echo.Echo {
 	e := echo.New()
 
 	// Middleware

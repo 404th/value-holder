@@ -1,18 +1,13 @@
 package main
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
+	"github.com/404th/value-holder/api"
 	"github.com/404th/value-holder/internal/config"
+	"github.com/404th/value-holder/internal/server"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	"go.uber.org/zap"
 )
 
@@ -36,47 +31,9 @@ func main() {
 	defer logger.Sync()
 	sugar := logger.Sugar()
 
-	e := echo.New()
+	e := api.Run(cfg, sugar)
 
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	e.GET("/hello", hello, func(hf echo.HandlerFunc) echo.HandlerFunc {
-		sugar.Infoln("Successfully catched from middleware")
-
-		return hello
-	})
-
-	// 2. Run server
-	shutdownChan := make(chan bool, 1)
-
-	go func() {
-		// Start server
-		if err := e.Start(fmt.Sprintf("%s:%d", cfg.ValueHolderProjectHost, cfg.ValueHolderProjectPort)); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			sugar.Errorln("failed to start server", "error", err)
-		}
-
-		// simulate time to close connections
-		time.Sleep(1 * time.Millisecond)
-
-		sugar.Infoln("Stopped serving new connections.")
-		shutdownChan <- true
-	}()
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
-
-	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
-	defer shutdownRelease()
-
-	if err := e.Shutdown(shutdownCtx); err != nil {
-		sugar.Fatalf("HTTP shutdown error: %v", err)
-	}
-
-	<-shutdownChan
-	sugar.Infoln("Graceful shutdown complete.")
+	server.Run(cfg, sugar, e)
 }
 
 // Handler

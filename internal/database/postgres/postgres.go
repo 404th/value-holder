@@ -34,3 +34,7 @@ func NewPostgres(cfg *config.Config) (db *pgxpool.Pool, err error) {
 
 	return pool, err
 }
+
+type Customer interface {
+	RegisterCustomer()
+}
